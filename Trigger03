@@ -1,0 +1,39 @@
+/*
+3. Once an Account is inserted an email should go to the System Admin user with specified text below.
+An account has been created and the name is “Account Name”.
+
+*/
+
+trigger testTrigger01 on Account(after insert) {
+    switch on Trigger.operationType {
+        case AFTER_INSERT {
+            Set<String> accountsName = new Set<String>();
+            List<Messaging.SingleEmailMessage> mails = new List<Messaging.SingleEmailMessage>();
+            User userObj = [select Id,Profile.Name,Email from user where Profile.Name='System Administrator'];
+            
+            for(Account a : Trigger.new) {
+                if(userObj != null && userObj.Email != null) {
+                    Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();
+                    mail.setSenderDisplayName('Salesforce');
+                    mail.setUseSignature(false);
+                    mail.setBccSender(false);
+                    mail.setSaveAsActivity(false);
+                    mail.toAddresses = new String[]{userObj.Email};
+                    mail.setSubject('New Account was Created.');
+                    String body = 'Dear System Administrator, <br/>';
+                    body += 'An account has been created and name is ' + a.Name+'.';
+                    mail.setHtmlBody(body);
+                    mails.add(mail);
+                }
+            }
+            
+            if(mails.size()>0){
+                Messaging.SendEmailResult[] results = Messaging.sendEmail(mails);
+                if (results[0].success) {
+                    System.debug('The email was sent successfully.');
+                }
+                else System.debug('The email failed to send: '+ results[0].errors[0].message);
+            }
+        }
+    }
+}
