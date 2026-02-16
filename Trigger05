@@ -1,0 +1,43 @@
+/*
+5. Create a field on Account Named (Client Contact lookup to Contact). Once an Account is inserted a Contact will create with the name of the Account and that Contact will be the Client Contact on the Account.
+
+Create a new field on Account
+    Field Name: Client Contact
+    Type: Lookup(Contact)
+
+When a new Account is created:
+    Automatically create a Contact
+    The Contact name should be same as the Account name
+    That Contact should be linked to the Account
+    Then update the Account’s Client Contact field with that new Contact
+
+*/
+
+trigger testTrigger01 on Account(after insert) {
+    switch on Trigger.operationType {
+        case AFTER_INSERT {
+            List<Contact> contactToInsert = new List<Contact>();
+
+            for(Account a : Trigger.new) {
+                Contact c = new Contact();
+                c.LastName = a.Name;
+                c.AccountId = a.Id;
+                accIds.add(c.AccountId);
+                contactToInsert.add(c);
+            }
+            
+            if(contactToInsert.size() > 0) insert contactToInsert;
+            
+            List<Account> accountsToUpdate = new List<Account>();
+            
+            for (Contact con : contactsToInsert) {
+                Account accUpdate = new Account();
+                accUpdate.Id = con.AccountId;
+                accUpdate.Client_Contact__c = con.Id;
+                accountsToUpdate.add(accUpdate);
+            }
+            
+            if(accountsToUpdate.size() > 0) update accountsToUpdate;
+        }
+    }
+}
