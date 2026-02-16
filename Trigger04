@@ -1,0 +1,33 @@
+/*
+4. Once an Account will update then that Account will update with the total amount from All its Opportunities on the Account Level. The account field name would be ” Total Opportunity Amount “.
+*/
+
+trigger testTrigger01 on Account(before update) {
+    switch on Trigger.operationType {
+        case BEFORE_UPDATE {
+            Set<Id> accountIds = new Set<Id>();
+            Map<Id , Double> amountMap = new Map<Id , Double>();
+            
+            for(Account a : Trigger.new) {
+                a.Total_Opportunity_Amount__c = 0;
+                accountIds.add(a.Id);
+            }
+            
+            List<AggregateResult> result = [select AccountId,sum(Amount)TotalAmount from opportunity where AccountId in :accId group by AccountId];
+            
+            if(result.size() > 0) {
+                for(AggregateResult a: results) {
+                    Id accountId = (Id)a.get('AccountId');
+                    double TotalAmount = (double)a.get('TotalAmount');
+                    amountMap.put(accountId,TotalAmount);
+                }
+            }
+            
+            for(Account acc:Trigger.new) {
+                if(amountMap.containskey(acc.Id)){
+                    acc.Total_Opportunity_Amount__c = amountMap.get(acc.Id);
+                }
+            }
+        }
+    }
+}
