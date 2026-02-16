@@ -1,0 +1,21 @@
+/*
+1. Write a trigger on Account, when an account is inserted, automatically account billing address should populate into the account shipping address.
+
+When it comes to Account Billing and Shipping Address, we cannot directly enter the values to the field Address because the Address is split into Street, City, State, PostalCode, and Country. We are using ” before insert ” because we need to change the values of the account which is getting inserted. If we use ” after insert ” then the fields of the account we are inserting will become read-only and we will not be able to update that account. This is the reason we are using ” before insert “.
+
+*/
+
+trigger testTrigger01 on Account(before insert) {
+    switch on Trigger.operationType {
+        case BEFORE_INSERT {
+            List<Account> accList = Trigger.new;
+            for(Account a : accList) {
+                if(a.BillingStreet != null) a.ShippingStreet = a.BillingStreet;
+                if(a.BillingCity != null) a.ShippingCity = a.BillingCity;
+                if(a.BillingState != null) a.ShippingState = a.BillingState;
+                if(a.BillingPostalCode != null) a.ShippingPostalCode = a.BillingPostalCode;
+                if(a.BillingCountry != null) a.ShippingCountry = a.BillingCountry;
+            }
+        }
+    }
+}
